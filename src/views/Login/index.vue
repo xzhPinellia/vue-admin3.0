@@ -243,7 +243,7 @@ export default {
           code: ruleForm.code
         }
         
-        Login(repuestData).then(response => {
+        root.$store.dispatch('app/login', repuestData).then(response => {
           // 页面跳转
           root.$router.push({
             name: 'Console'

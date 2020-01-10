@@ -5,7 +5,7 @@ import store from "./store/index.js";
 import router from "./router/index.js";
 import ElementUI from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
-
+import "./router/premit";//路由守卫
 // 自定义全局方法
 import "./icons";
 
