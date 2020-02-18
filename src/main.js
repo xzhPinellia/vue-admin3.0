@@ -6,9 +6,11 @@ import router from "./router/index.js";
 import ElementUI from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
 import "./router/premit";//路由守卫
+import VCharts from 'v-charts'
 // 自定义全局方法
 import "./icons";
 
+Vue.use(VCharts)
 Vue.use(ElementUI);
 Vue.use(VueCompositionApi);
 Vue.config.productionTip = false;
