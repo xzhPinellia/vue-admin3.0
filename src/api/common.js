@@ -43,3 +43,14 @@ export function common(){
             data
         })
     }
+
+     /**
+     * 请求表格数数据
+     */
+    export function loadTableData(params){
+        return service.request({
+            method: params.method || "post",
+            url: params.url,
+            data:params.data || {}
+        })
+    }
