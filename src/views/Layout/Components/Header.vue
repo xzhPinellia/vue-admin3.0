@@ -41,6 +41,7 @@ export default {
 @import "../../../styles/config.scss";
 #header-wrap {
     position: fixed;
+    z-index: 999;
     top: 0;
     right: 0;
     left: $navMenu;

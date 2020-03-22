@@ -52,7 +52,7 @@ export default {
                tHead:[
                    {
                        label:'邮箱',
-                       field:'email'
+                       field:'title'
                    },
                    {
                        label:'真实姓名',
@@ -81,12 +81,21 @@ export default {
                        columnType:'slot',
                        slotName:'operation'
                    }
-               ]
+               ],
+               //请求接口
+               requestData:{
+                   url:'getUserList',
+                   method:'post',
+                   data:{
+                       pageNumber:1,
+                       pageSize:10
+                   }
+               }
            },
         })
         //
         const deletes = (data)=>{
-            console.log(data)
+           
         }
         return {
             data,deletes
