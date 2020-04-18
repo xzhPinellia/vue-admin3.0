@@ -54,3 +54,14 @@ export function common(){
             data:params.data || {}
         })
     }
+
+      /**
+     * 请求 省市区
+     */
+    export function GetCityPicker(data){
+        return service.request({
+            method: "post",
+            url: "/cityPicker/",
+            data
+        })
+    }
