@@ -1,6 +1,6 @@
 <template>
  <div>
-   <el-table :data='data.tableData' border style="width:100%">
+   <el-table :data='data.tableData' border style="width:100%" @selection-change="thatSelectCheckbox">
        <el-table-column v-if="data.tableConfig.selection" type="selection" width="55"></el-table-column>
        <template v-for="item in data.tableConfig.tHead">
            <!-- v-slot-->
@@ -18,15 +18,26 @@
             </el-table-column>
        </template>
    </el-table>
-    <el-pagination
-     @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="pageData.currentPage"
-      :page-sizes="pageData.pageSizes"
-      :page-size="pageData.pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="pageData.total">
-    </el-pagination>
+   <div class="table-footer">
+       <el-row>
+           <el-rol :span='4'>
+                 <slot name='tableFooterLeft'></slot>
+           </el-rol>
+            <el-rol :span='20'>
+               <el-pagination
+                    class="pull-right"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="pageData.currentPage"
+                    :page-sizes="pageData.pageSizes"
+                    :page-size="pageData.pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="pageData.total">
+                </el-pagination>
+           </el-rol>
+       </el-row>
+   </div>
+    
    </div>
 </template>
 <script>
@@ -39,13 +50,17 @@ export default {
         config:{
             type:Object,
             default:()=>{}
-        }
+        },
+        tableRow:{
+            type:Object,
+            default:()=>{}
+        },
     },
-    setup(props, { root}) {
+    setup(props, { root,emit}) {
        //加载数据
-        const {tableData,tableLoadData} =loadData( { root});
+        const {tableData,tableLoadData} =loadData({ root});
         //分页
-        const { pageData, handleSizeChange, handleCurrentChange,totalCount} =pagination( { root});
+        const { pageData, handleSizeChange, handleCurrentChange,totalCount} =pagination({ root});
         const data=reactive({
             tableConfig:{
                 selection:true,
@@ -89,6 +104,18 @@ export default {
              
           }
         }
+        //勾选checkbox 
+        const thatSelectCheckbox  =(val) =>{
+            console.log(props.tableRow)
+            let rowData={
+                idItem:val.map(item => item.id)
+            }
+            emit("update:tableRow",rowData)
+        }
+        //刷新数据
+        const refreshData= ()=>{
+            tableLoadData(data.tableConfig.requestData)
+        }
         onBeforeMount(()=>{
             initTableConfig();
             tableLoadData(data.tableConfig.requestData)
@@ -97,11 +124,11 @@ export default {
         return  {
             data,pageData, 
             totalCount,
-            handleSizeChange, handleCurrentChange
+            handleSizeChange, handleCurrentChange,thatSelectCheckbox,refreshData
         }
     }
 }
 </script>
 <style lang="scss" scoped>
-
+.table-footer{padding: 15px 0;}
 </style>

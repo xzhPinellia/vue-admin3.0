@@ -24,13 +24,16 @@
             </el-col>
         </el-row>
         <div class="topH"></div>
-        <TableVue :config='data.configTable'>
+        <TableVue ref="userTable" :config='data.configTable' :tableRow.sync="data.tableRow">
             <template v-slot:status='slotData'>
                 <el-switch v-model="slotData.data.status"   active-value="2" inactive-value="1" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
             </template>
-             <template v-slot:operation='slotData'>
-                <el-button size="small" type="success" @click="deletes(slotData.data)">编辑</el-button>
-                <el-button size="small" type="danger"  @click="deletes(slotData.data)">删除</el-button>
+            <template v-slot:operation='slotData'>
+                <el-button size="small" type="success">编辑</el-button>
+                <el-button size="small" type="danger"  @click="handlerDel(slotData.data)">删除</el-button>
+            </template>
+            <template v-slot:tableFooterLeft>
+                <el-button size="small" type="danger" @click="handlerBatchDel()">批量删除</el-button>
             </template>
         </TableVue>
          <!--新增弹窗-->
@@ -39,14 +42,21 @@
 </template>
 <script>
 import { reactive, ref, watch, onMounted } from '@vue/composition-api';
+import {UserDel}  from '@/api/user';
+//组件
 import DialogAdd from "./dialog/add";
 import  SelectVue  from '@c/Select'
 import  TableVue  from '@c/Table'
+//3.0
+import {global } from "@/utils/global_V3.0"
 export default {
     name: 'infoIndex',
     components:{SelectVue,TableVue,DialogAdd},
-    setup(props) {
+    setup(props,{root,refs}) {
+        const {confirm} =global();
         const data =reactive({
+            //tableRow
+           tableRow:{},
            dialog_add:false,
            configOption:{
                init:["name","phone"]
@@ -98,11 +108,42 @@ export default {
            },
         })
         //
-        const deletes = (data)=>{
-           
+        const handlerBatchDel = ()=>{
+           console.log(data.tableRow)
+           let userId=data.tableRow.idItem
+           if(!userId || userId.length ===0){
+               root.$message({
+                   message:"请勾选需要删除的用户！！！",
+                   type:"error"
+               })
+               return false;
+           }
+            confirm({
+                content: "确认删除当前信息，确认后将无法恢复！！",
+                tip: "警告",
+                fn: userDelete
+            })
         }
+        //删除用户
+        const userDelete =()=>{
+            UserDel({id:data.tableRow.idItem}).then((res)=>{
+                console.log(res)
+                refs.userTable.refreshData()
+           })
+        }
+         //
+         const handlerDel=(params)=>{
+             data.tableRow.idItem=[params.id]
+              confirm({
+                content: "确认删除当前信息，确认后将无法恢复！！",
+                tip: "警告",
+                fn: userDelete
+            })
+         }
         return {
-            data,deletes
+            data,
+            handlerDel,
+            handlerBatchDel
         }
     }
 }

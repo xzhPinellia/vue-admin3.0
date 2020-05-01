@@ -20,3 +20,13 @@ export function UserAdd(data={}){
         data
     })
 }
+/**
+ * 删除
+ */
+export function UserDel(data={}){
+    return service.request({
+        method: "post",
+        url: "/user/delete/",
+        data
+    })
+}
