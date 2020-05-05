@@ -7,13 +7,13 @@
                     <div class="warp-content">
                         <el-row :gutter="16">
                             <el-col :span="3">
-                               <SelectVue :config='data.configOption'/>
+                               <SelectVue :config='data.configOption' :selectData.sync="data.selectData"/>
                             </el-col>
                             <el-col :span="5">
-                                <el-input placeholder="请输入关键字"></el-input>
+                                <el-input v-model="data.key_word" placeholder="请输入关键字"></el-input>
                             </el-col>
                             <el-col :span="15">
-                                <el-button type="danger">搜索</el-button>
+                                <el-button type="danger" @click="search">搜索</el-button>
                             </el-col>
                         </el-row>
                     </div>
@@ -26,10 +26,10 @@
         <div class="topH"></div>
         <TableVue ref="userTable" :config='data.configTable' :tableRow.sync="data.tableRow">
             <template v-slot:status='slotData'>
-                <el-switch v-model="slotData.data.status"   active-value="2" inactive-value="1" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+                <el-switch @change="handlerSwitch(slotData.data)" v-model="slotData.data.status"   active-value="2" inactive-value="1" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
             </template>
             <template v-slot:operation='slotData'>
-                <el-button size="small" type="success">编辑</el-button>
+                <el-button size="small" type="success" @click="handlerEidt(slotData.data)">编辑</el-button>
                 <el-button size="small" type="danger"  @click="handlerDel(slotData.data)">删除</el-button>
             </template>
             <template v-slot:tableFooterLeft>
@@ -37,12 +37,12 @@
             </template>
         </TableVue>
          <!--新增弹窗-->
-        <DialogAdd :flag.sync="data.dialog_add" />
+        <DialogAdd :flag.sync="data.dialog_add" :eidtData='data.eidtData' @refreshTableData="refreshData" />
     </div>
 </template>
 <script>
 import { reactive, ref, watch, onMounted } from '@vue/composition-api';
-import {UserDel}  from '@/api/user';
+import {UserDel ,UserActives}  from '@/api/user';
 //组件
 import DialogAdd from "./dialog/add";
 import  SelectVue  from '@c/Select'
@@ -54,10 +54,18 @@ export default {
     components:{SelectVue,TableVue,DialogAdd},
     setup(props,{root,refs}) {
         const {confirm} =global();
+        const userTable=ref(null)
         const data =reactive({
             //tableRow
            tableRow:{},
+           eidtData:{},
            dialog_add:false,
+           //下拉的值
+           selectData:{},
+           //搜索关键字
+           key_word:"",
+           //阻止状态
+           updateStatusFlag:false,
            configOption:{
                init:["name","phone"]
            },
@@ -128,8 +136,15 @@ export default {
         const userDelete =()=>{
             UserDel({id:data.tableRow.idItem}).then((res)=>{
                 console.log(res)
-                refs.userTable.refreshData()
+                //第一种
+                // refs.userTable.refreshData()
+                refreshData()
+
            })
+        }
+        //刷新数据
+        const refreshData=() =>{
+            refs.userTable.refreshData()
         }
          //
          const handlerDel=(params)=>{
@@ -140,10 +155,47 @@ export default {
                 fn: userDelete
             })
          }
+         //编辑
+         const handlerEidt= (params)=>{
+                data.dialog_add=true
+                data.eidtData=Object.assign({},params)
+         }
+         //改变禁用状态
+          const handlerSwitch=(params)=>{
+             let requestData={
+                 id:params.id,
+                 status:params.status
+             }
+             UserActives(requestData).then(res=>{
+                 if(data.updateStatusFlag){return false}
+                 data.updateStatusFlag=true
+                root.$message({
+                    message:res.data.message,
+                    type:"success"
+                })
+                  data.updateStatusFlag= !data.updateStatusFlag
+             }).catch(error=>{
+                 data.updateStatusFlag= !data.updateStatusFlag
+             })
+              
+         }
+         //搜搜
+         const search= ()=>{
+                let requestData={
+                    [data.selectData.value]:data.key_word
+                }
+                console.log(requestData)
+                refs.userTable.paramsLoadData(requestData)
+         }
+         
         return {
             data,
             handlerDel,
-            handlerBatchDel
+            handlerBatchDel,
+            refreshData,
+            handlerSwitch,
+            handlerEidt,
+            search
         }
     }
 }

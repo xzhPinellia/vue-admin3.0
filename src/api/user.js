@@ -30,3 +30,23 @@ export function UserDel(data={}){
         data
     })
 }
+/**
+ * 用户禁启用
+ */
+export function UserActives(data){
+    return service.request({
+        method: "post",
+        url: "/user/actives/",
+        data
+    })
+}
+/**
+ * 编辑
+ */
+export function UserEdit(data){
+    return service.request({
+        method: "post",
+        url: "/user/edit/",
+        data
+    })
+}

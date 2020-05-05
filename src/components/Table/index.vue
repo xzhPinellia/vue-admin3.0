@@ -116,6 +116,15 @@ export default {
         const refreshData= ()=>{
             tableLoadData(data.tableConfig.requestData)
         }
+        //参数刷新数据
+        const paramsLoadData= (params)=>{
+            let requestData=Object.assign({},params,{
+                pageNumber:1,
+                pageSize:10
+            })
+            data.tableConfig.requestData.data=requestData
+            tableLoadData(data.tableConfig.requestData.data)
+        }
         onBeforeMount(()=>{
             initTableConfig();
             tableLoadData(data.tableConfig.requestData)
@@ -124,7 +133,7 @@ export default {
         return  {
             data,pageData, 
             totalCount,
-            handleSizeChange, handleCurrentChange,thatSelectCheckbox,refreshData
+            handleSizeChange, handleCurrentChange,thatSelectCheckbox,refreshData,paramsLoadData
         }
     }
 }

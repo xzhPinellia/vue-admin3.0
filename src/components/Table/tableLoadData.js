@@ -16,11 +16,9 @@ export function loadData(){
         }
         loadTableData(requestData).then((res)=>{
             let resData=res.data.data.data
-            if(resData && resData.length >0){
-                tableData.item=resData
-                tableData.total=res.data.data.total
-            }
-            
+            //后台返回数据时，并不是一个数组，有时也会时null
+            tableData.item=resData
+            tableData.total=resData.length===0 ? 0 :res.data.data.total
         }).catch(error=>{
 
         })

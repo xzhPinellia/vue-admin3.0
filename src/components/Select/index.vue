@@ -1,5 +1,5 @@
 <template>
-    <el-select v-model="data.selectValue">
+    <el-select v-model="data.selectValue" @change="select">
         <el-option v-for="item in data.initOption" :key="item.value" :label="item.label" :value="item.value"></el-option>
     </el-select>
 </template>
@@ -11,9 +11,13 @@ export default {
         config:{
             type:Object,
             default:()=>{}
-        }
+        },
+    selectData:{
+            type:Object,
+            default:()=>{}
+        },
     },
-    setup(props) {
+    setup(props,{root,emit}) {
         const data =reactive({
             selectValue:"",
             initOption:[],
@@ -48,11 +52,16 @@ export default {
             //初始化搜索类型
             data.selectValue=optionArr[0].value
         }
+        //选择的值
+        const select= (val)=>{
+            let filterData=data.option.filter(item => item.value == val)[0]
+             emit("update:selectData",filterData)
+        }
         onMounted(()=>{
             initOption()
         })
         return {
-            data
+            data,select
         }
     }
 }

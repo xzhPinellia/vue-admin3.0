@@ -1,6 +1,6 @@
 <template>
     <el-dialog title="新增" :visible.sync="data.dialog_info_flag" @close="close" width="700px" @opened="openDialog">
-        <el-form :model="data.form" ref="addInfoForm">
+        <el-form :model="data.form" :rules="data.rules" ref="addInfoForm">
             <el-form-item label="用户名：" :label-width="data.formLabelWidth" prop="username">
                  <el-input v-model="data.form.username" placehoder="请输入用户名"></el-input>
             </el-form-item>
@@ -29,7 +29,7 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
             <el-button @click="close">取消</el-button>
-            <el-button type="danger" :loading="data.submitLoading" @click="submit">确定</el-button>
+            <el-button type="danger" :loading="data.submitLoading" @click="submit('addInfoForm')">确定</el-button>
         </div>
     </el-dialog>
 </template>
@@ -37,7 +37,8 @@
 import sha1 from 'js-sha1'
 import { reactive, ref, watch, onBeforeMount } from '@vue/composition-api';
 import  CityPicker from "@c/CityPicker"
-import {GetRole,UserAdd} from "@/api/user"
+import {GetRole,UserAdd,UserEdit} from "@/api/user"
+import { stripscript, validatePass, validateEmail, validateVCode } from '@/utils/validate';
 export default {
     name: 'dialogInfo',
     components:{CityPicker},
@@ -46,9 +47,9 @@ export default {
             type: Boolean,
             default: false
         },
-        category: {
-            type: Array,
-            default: () => []
+        eidtData: {
+            type: Object,
+            default: () => {}
         }
     },
     // vue2.0
@@ -66,6 +67,53 @@ export default {
     //     }
     // },
     setup(props, { emit, root, refs }){
+         // 验证用户名
+      let validateUsername = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入用户名'));
+        } else if(validateEmail(value)){
+          callback(new Error('用户名格式有误'));
+        } else {
+          callback(); //true
+        }
+      };
+      // 验证密码
+      let validatePassword = (rule, value, callback) => {
+          //1.编辑状态  需要校验: data.form.id 存在并且密码不为空
+          //不需要校验  data.form.id 存在并且密码为空
+          //添加状态 需要校验: data.form.id 不存在
+          if(data.form.id && !value){
+              callback();
+          }
+          if(data.form.id && value){
+            // 过滤后的数据
+            if(value){
+                data.form.password = stripscript(value);
+                value = data.form.password;
+            }
+            if (value === '') {
+                callback(new Error("请输入密码"));
+            } else if (validatePass(value)) {
+                callback(new Error("密码为6至20位数字+字母"));
+            } else{ 
+                callback();
+            }
+          }else{
+            // 过滤后的数据
+            if(value){
+                data.form.password = stripscript(value);
+                value = data.form.password;
+            }
+            if (value === '') {
+                callback(new Error("请输入密码"));
+            } else if (validatePass(value)) {
+                callback(new Error("密码为6至20位数字+字母"));
+            } else {
+                callback();
+            }
+          }
+        
+      };
         /**
          * 数据
          */
@@ -86,7 +134,18 @@ export default {
             // 分类下拉
             categoryOption: ['A'],
             // 按钮加载
-            submitLoading: false
+            submitLoading: false,
+            rules:reactive({
+                username: [
+                    { validator: validateUsername, trigger: 'blur' }
+                ],
+                password: [
+                    { validator: validatePassword, trigger: 'blur' }
+                ],
+                role: [
+                    { required:true,message:'请选择角色',trigger: 'blur' }
+                ]
+            })
         });
         //请求角色
         const getRole= ()=>{
@@ -106,48 +165,80 @@ export default {
         }
         //弹窗打开调用
         const openDialog = () => {
+            //获取角色
              getRole()
+             //初始值处理
+             let eidtData=props.eidtData
+             if(eidtData.id){//编辑
+                eidtData.role=eidtData.role.split(',')
+             }else{//添加
+                data.form.id && delete data.form.id
+             }
+             for(let key in eidtData){
+                     data.form[key]=eidtData.id ? eidtData[key] : ''
+             }
+            
         }
         const resetForm = () => {
             data.cityPickerData={}
             refs.addInfoForm.resetFields();
         }
-        const submit = () => {
-             if(!data.form.username){
-                root.$message({
-                    message:"用户名不为空！！",
-                    type:"error"
-                })
-                return false
+        const submit = (formName) => {
+            refs[formName].validate((valid) => {
+            // 表单验证通过
+            if (valid) {
+             //数据处理
+                let requestData=Object.assign({},data.form)
+                requestData.role=requestData.role.join("");
+                requestData.region=JSON.stringify(data.cityPickerData)
+               
+                //添加状态 需要密码 加密
+                //编辑状态 存在 需要密码 并且加密 否则 删除
+                if(requestData.id){
+                    if(requestData.password){
+                         requestData.password=sha1(requestData.password)
+                    }else{
+                        delete requestData.password
+                    }
+                    UserEdits(requestData)
+                }else{
+                     requestData.password=sha1(requestData.password)
+                    UserAdds(requestData)
+                }
+               
+            } else {
+                console.log('error submit!!');
+                return false;
             }
-            if(!data.form.password){
-                root.$message({
-                    message:"密码不为空！！",
-                    type:"error"
-                })
-                return false
-            }
-            if(data.form.role.length===0){
-                root.$message({
-                    message:"请选择角色类型！！",
-                    type:"error"
-                })
-                return false
-            }
-            //数据处理
-            let requestData=Object.assign({},data.form)
-            requestData.role=requestData.role.join("");
-            requestData.region=JSON.stringify(data.cityPickerData)
-            requestData.password=sha1(requestData.password)
-            UserAdd(requestData).then(res =>{
-                let data=res.data
-                console.log(data)
-                root.$message({
-                    message:data.message,
-                    type:"success"
-                })
-                resetForm()
             })
+        }
+        //添加
+        const UserAdds=(requestData)=>{
+             UserAdd(requestData).then(res =>{
+                    let data=res.data
+                    console.log(data)
+                    root.$message({
+                        message:data.message,
+                        type:"success"
+                    })
+                    //关闭弹窗
+                    close();
+                    emit('refreshTableData')
+             })
+        }
+        //编辑
+         const UserEdits=(requestData)=>{
+             UserEdit(requestData).then(res =>{
+                    let data=res.data
+                    console.log(data)
+                    root.$message({
+                        message:data.message,
+                        type:"success"
+                    })
+                    //关闭弹窗
+                    close();
+                    emit('refreshTableData')
+             })
         }
         return {
             data,
