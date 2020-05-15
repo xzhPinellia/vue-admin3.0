@@ -37,7 +37,7 @@
 import sha1 from 'js-sha1'
 import { reactive, ref, watch, onBeforeMount } from '@vue/composition-api';
 import  CityPicker from "@c/CityPicker"
-import {GetRole,UserAdd,UserEdit} from "@/api/user"
+import {GetRole,GetSystem,UserAdd,UserEdit} from "@/api/user"
 import { stripscript, validatePass, validateEmail, validateVCode } from '@/utils/validate';
 export default {
     name: 'dialogInfo',
@@ -165,8 +165,8 @@ export default {
         }
         //弹窗打开调用
         const openDialog = () => {
-            //获取角色
-             getRole()
+            //获取角色  getSystem() 系统
+             getRole();//角色分配路由
              //初始值处理
              let eidtData=props.eidtData
              if(eidtData.id){//编辑

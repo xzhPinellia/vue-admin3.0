@@ -16,8 +16,26 @@ router.beforeEach((to, from, next) => {
             next();
         }else{
             // 获取用户的色
-            // 动态分配路由权限
-            next();
+            // 动态分配路由权限 roles[]
+             if(store.getters["app/roles"].length===0){
+                store.dispatch('pemission/getRoles').then(response=>{
+                    let role=response.role;
+                    store.commit("app/SET_ROLES",role)
+                    store.dispatch("pemission/createRouter",role).then(response=>{
+                        let addRouters=store.getters["pemission/addRouters"];
+                        let allRouters=store.getters["pemission/allRouters"];
+                        //路由更新
+                        router.options.routes=allRouters
+                        //添加动态路由
+                        router.addRoutes(addRouters);
+                        next({...to,replace:true})
+                    })
+                });
+             }else{
+                 next();
+             }   
+             
+           
         }
         /**
          * 1、to = /console
