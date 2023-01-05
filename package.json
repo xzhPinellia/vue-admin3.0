@@ -18,7 +18,7 @@
     "js-sha1": "^0.6.0",
     "sha1": "^1.1.1",
     "style-loader": "^1.1.2",
-    "svg-sprite-loader": "^4.1.6",
+    "svg-sprite-loader": "^6.0.11",
     "v-charts": "^1.19.0",
     "vue": "^2.6.10",
     "vue-quill-editor": "^3.0.6",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.1.0",
     "@vue/cli-plugin-eslint": "^4.1.0",
-    "@vue/cli-service": "^4.1.0",
+    "@vue/cli-service": "^5.0.8",
     "babel-eslint": "^10.0.3",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
